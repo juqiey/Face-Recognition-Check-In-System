@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loading...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Mobile responsive -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tourney:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=photo_camera" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 100vh; padding: 15px;">
+        <div class="text-center mb-4">
+            <div class="mb-2">
+                <i class="fas fa-face-smile-beam fa-3x text-primary fa-bounce"></i>
+            </div>
+            <h1 class="display-6 fw-bold">Welcome to the Face Recognition Check-in System</h1>
+            <p class="text-muted">Please wait while we prepare everything for you.</p>
+        </div>
+        <div class="card w-100" style="max-width: 500px;">
+            <div class="card-header text-center">
+                <h2><i class="fas fa-robot me-2"></i>Loading Faces</h2>
+            </div>
+            <div class="card-body text-center">
+                <p class="status" id="statusText">Starting facial recognition engine...<br>Please do not close this tab.</p>
+                <div class="progress-container my-4">
+                    <div class="progress-bar" id="progressBar">0%</div>
+                </div>
+                <button class="home-button" id="homeButton" onclick="window.location.href='/home';">
+                    <i class="fas fa-home me-2"></i>Home
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function updateProgress() {
+            fetch('/progress')
+                .then(response => response.json())
+                .then(data => {
+                    let percent = 0;
+                    if (data.total > 0) {
+                        percent = Math.round((data.current / data.total) * 100);
+                    }
+
+                    const progressBar = document.getElementById('progressBar');
+                    const statusText = document.getElementById('statusText');
+                    const homeButton = document.getElementById('homeButton');
+
+                    progressBar.style.width = percent + '%';
+                    progressBar.innerText = percent + '%';
+
+                    if (data.status === 'done') {
+                        statusText.innerText = '✅ All known faces loaded!';
+                        progressBar.classList.add('progress-done');
+                        homeButton.style.display = 'inline-block';
+                    } else {
+                        statusText.innerText = `Scanning ${data.current} of ${data.total}`;
+                        setTimeout(updateProgress, 500);
+                    }
+                });
+        }
+
+        updateProgress();
+    </script>
+    <div class="text-center justify-content-center align-items-center d-flex flex-column">
+        <footer>
+            © 2025 Developed by Juqiey • Jauslanners RC
+        </footer>
+    </div>
+</body>
+</html>

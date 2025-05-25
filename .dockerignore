@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.db
+.env
+*.env
+*.log
+.DS_Store
+.git
+docker-compose.yml

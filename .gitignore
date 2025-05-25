@@ -1,0 +1,19 @@
+# Ignore Python virtual environments
+.venv/
+__pycache__/
+v/
+
+# Ignore model files (YOLO, etc.)
+*.pt
+*.weights
+*.onnx
+
+# Ignore Jupyter notebook checkpoints (if any)
+.ipynb_checkpoints/
+
+# Ignore environment files
+.env
+
+# Ignore logs or outputs
+*.log
+outputs/

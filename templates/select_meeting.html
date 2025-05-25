@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting & Location Details</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tourney:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=photo_camera" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <div id="app" class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-center">Meeting & Location Details</h1>
+                <p class="text-center text-muted">Please fill in the details below to continue</p>
+                
+                <!-- Database Stats Card -->
+                <div class="text-center mb-4">
+                    <button type="button" class="btn btn-outline-primary" onclick="loadFaceStats()">
+                        <i class="fas fa-database"></i> View Face Database Stats
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <form action="/index" method="GET" id="detailsForm">
+            <div class="row mb-4 justify-content-center">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Select Check-in Mode</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Select role</label>
+                                <select class="form-select" name="role" id="role" required>
+                                    <option value="" selected disabled>Select a role</option>
+                                    <option value="0">Visitor</option>
+                                    <option value="1">Contractor</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="location_id" class="form-label">Select Location</label>
+                                <select class="form-select" name="location_id" id="location_id" required>
+                                    <option value="" selected disabled>Choose a location</option>
+                                    {% for location in locations %}
+                                    <option value="{{ location[0] }}">{{ location[1] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div id="visitor-fields" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="meeting_id" class="form-label">Select Meeting</label>
+                                    <select class="form-select" name="meeting_id" id="meeting_id">
+                                        <option value="" selected disabled>Choose a meeting</option>
+                                        {% for meeting in meetings %}
+                                        <option value="{{ meeting[0] }}">{{ meeting[1]}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="venue" class="form-label">Select venue</label>
+                                    <select class="form-select" name="venue" id="venue">
+                                        <option value="" selected disabled>Select a venue</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="contractor-fields" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="contractor_venue" class="form-label">Enter Work Location</label>
+                                    <input type="text" class="form-control" name="venue" id="contractor_venue" placeholder="e.g. Main Entrance, Floor 2, etc.">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="row mb-4 justify-content-center">
+                <div class="col-md-6 text-center">
+                    <button type="submit" id="submit-btn" class="btn btn-primary">
+                        <i class="fas fa-arrow-right"></i> Continue to Check-in
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <!-- Toast Container -->
+        <!-- <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="successToast" class="toast align-items-center text-white bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="successToastBody">📸 New images have been uploaded!</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="mt-2 pt-2 border-top border-light d-flex justify-content-end px-3 pb-2">
+                    <button type="button" class="btn btn-warning btn-sm me-2" data-bs-dismiss="toast">Dismiss</button>
+                    <button type="button" class="btn btn-success btn-sm" id="reloadFacesBtn">Reload</button>
+                </div>
+            </div>
+        </div> -->
+        
+        <!-- Face Stats Modal -->
+        <div class="modal fade" id="faceStatsModal" tabindex="-1" aria-labelledby="faceStatsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-primary" id="faceStatsModalLabel">Face Database Statistics</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="spinner-border text-primary" id="statsSpinner" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div id="statsContent" class="d-none">
+                            <!-- <div class="row">
+                                <div class="col-6">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="visitorCount">0</h3>
+                                            <p class="mb-0">Visitors</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-warning text-dark">
+                                        <div class="card-body text-center">
+                                            <h3 id="contractorCount">0</h3>
+                                            <p class="mb-0">Contractors</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> -->
+                            <div class="text-center mt-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h2 id="totalCount">0</h2>
+                                        <p class="mb-0">Total Faces in Database</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <!-- <button type="button" class="btn btn-primary" onclick="reloadFaces()">
+                            <i class="fas fa-sync-alt"></i> Reload Face Database
+                        </button> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Initialize Bootstrap elements
+        const statsModal = new bootstrap.Modal(document.getElementById('faceStatsModal'));
+        const successToast = new bootstrap.Toast(document.getElementById('successToast'));
+        
+        // DOM Elements
+        const roleSelect = document.getElementById('role');
+        const locationSelect = document.getElementById('location_id');
+        const meetingSelect = document.getElementById('meeting_id');
+        const venueSelect = document.getElementById('venue');
+        const contractorVenueInput = document.getElementById('contractor_venue');
+        const visitorFields = document.getElementById('visitor-fields');
+        const contractorFields = document.getElementById('contractor-fields');
+        const detailsForm = document.getElementById('detailsForm');
+        
+        // Event Listeners
+        roleSelect.addEventListener('change', handleRoleChange);
+        
+        // Role change handler
+        function handleRoleChange() {
+            const role = roleSelect.value;
+            
+            if (role === '0') { // Visitor
+                visitorFields.style.display = 'block';
+                contractorFields.style.display = 'none';
+                
+                // Make meeting and venue required
+                meetingSelect.setAttribute('required', '');
+                venueSelect.setAttribute('required', '');
+                contractorVenueInput.removeAttribute('required');
+                
+                // Clear contractor venue input
+                contractorVenueInput.value = '';
+            } else if (role === '1') { // Contractor
+                contractorFields.style.display = 'block';
+                visitorFields.style.display = 'none';
+                
+                // Make contractor venue input required
+                contractorVenueInput.setAttribute('required', '');
+                meetingSelect.removeAttribute('required');
+                venueSelect.removeAttribute('required');
+                
+                // Clear visitor fields
+                meetingSelect.value = '';
+                venueSelect.innerHTML = '<option selected disabled>Select a venue</option>';
+            }
+        }
+
+        function updateVenues() {
+            const meetingId = meetingSelect.value;
+            const locationId = locationSelect.value;
+
+            if (meetingId && locationId) {
+                axios.get(`/get_venues/${meetingId}/${locationId}`)
+                    .then(response => {
+                        const venues = response.data;
+                        venueSelect.innerHTML = '<option value="" disabled selected>Select a venue</option>';
+                        venues.forEach(v => {
+                            const option = document.createElement('option');
+                            option.value = v.venue;
+                            option.textContent = v.venue;
+                            venueSelect.appendChild(option);
+                        });
+                    });
+            }
+        }
+
+        // Attach the event listener to both select elements
+        meetingSelect.addEventListener('change', updateVenues);
+        locationSelect.addEventListener('change', updateVenues);
+
+        // Load face stats
+        function loadFaceStats() {
+            statsModal.show();
+            document.getElementById('statsSpinner').classList.remove('d-none');
+            document.getElementById('statsContent').classList.add('d-none');
+
+            axios.get('api/face_stats').then(response => {
+                const data = response.data;
+                // document.getElementById('visitorCount').textContent = data.total_visitor;
+                // document.getElementById('contractorCount').textContent = data.total_contractor;
+                document.getElementById('totalCount').textContent = data.total;
+
+                document.getElementById('statsSpinner').classList.add('d-none');
+                document.getElementById('statsContent').classList.remove('d-none');
+            });
+        }
+
+    </script>
+</body>
+</html>

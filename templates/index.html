@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Check-in System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tourney:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=photo_camera" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div id="app" class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-center">Face Recognition Check-in Prototype</h1>
+                <p class="text-center text-muted">Imbas muka untuk masuk </p>
+                <!-- Role indicator -->
+                <div class="text-center mb-3">
+                    {% if role == '0' %}
+                    <span class="badge bg-success">Visitor Mode</span>
+                    {% elif role == '1' %}
+                    <span class="badge bg-warning text-dark">Contractor Mode</span>
+                    {% endif %}
+                </div>
+                {% if role == '0' %}
+                    {% if meeting_details and location_details %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-center text-muted">📍 Location: <span id="location_details">{{ location_details[1] }} (<strong>{{venue}}</strong>)</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-center text-muted">📅 Meeting: <span id="meeting_details">{{ meeting_details[1] }}</span></p>
+                        </div>
+                    </div>  
+                    {% else %}
+                    <p class="text-center text-danger">⚠️ Error: Meeting or location details not found.</p>
+                    {% endif %}
+                {% elif role == '1' %}
+                    {% if location_details %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p class="text-center text-muted">📍 Location: <span id="location_details">{{ location_details[1] }}</span></p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-danger">⚠️ Error: Location details not found.</p>
+                    {% endif %}
+                {% endif %}
+                
+                <!-- Hidden inputs -->
+                <input type="hidden" id="meeting_id" value="{{ meeting_details[0] if meeting_details else '' }}">
+                <input type="hidden" id="location_id" value="{{ location_details[0] if location_details else '' }}">
+                <input type="hidden" id="venue" value="{{ venue|default('') }}">
+                <input type="hidden" id="role" value="{{ role|default('0') }}">
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="video-container">
+                    <img id="video-feed" class="video-feed d-none" alt="Video feed">
+                    <div id="camera-placeholder" class="video-feed d-flex justify-content-center align-items-center bg-light" style="height: 480px;">
+                        <div class="d-flex flex-column align-items-center">
+                            <span class="material-symbols-outlined">
+                                photo_camera
+                            </span>
+                            <p class="text-muted mt-2">Camera feed not active</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-panel d-flex justify-content-center mt-3">
+                    <button id="start-btn" class="btn btn-primary me-2">
+                        <i class="fas fa-play"></i> Start Camera
+                    </button>
+                    <button id="stop-btn" class="btn btn-danger me-2 d-none">
+                        <i class="fas fa-stop"></i> Stop Camera
+                    </button>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Maklumat Individu</h5>
+                    </div>
+                    <div class="card-body" id="recognized-faces-container" style="max-height: 480px; overflow-y: auto;">
+                        <div id="no-faces-message" class="text-center text-muted py-3">
+                            Tiada Maklumat
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Toast Notifications -->
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="successToastBody"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            
+            <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body" id="errorToastBody"></div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Face Stats Modal -->
+        <div class="modal fade" id="faceStatsModal" tabindex="-1" aria-labelledby="faceStatsModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="faceStatsModalLabel">Face Database Statistics</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="spinner-border text-primary" id="statsSpinner" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div id="statsContent" class="d-none">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="card bg-success text-white">
+                                        <div class="card-body text-center">
+                                            <h3 id="visitorCount">0</h3>
+                                            <p class="mb-0">Visitors</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card bg-warning text-dark">
+                                        <div class="card-body text-center">
+                                            <h3 id="contractorCount">0</h3>
+                                            <p class="mb-0">Contractors</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h2 id="totalCount">0</h2>
+                                        <p class="mb-0">Total Faces in Database</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Constants
+        const API_BASE_URL = window.location.origin + '/api';
+        const VIDEO_FEED_URL = `${API_BASE_URL}/video_feed`;
+        
+        // State
+        let isStreamActive = false;
+        let recognizedFaces = [];
+        let pollingInterval = null;
+        
+        // DOM Elements
+        const videoFeed = document.getElementById('video-feed');
+        const cameraPlaceholder = document.getElementById('camera-placeholder');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const recognizedFacesContainer = document.getElementById('recognized-faces-container');
+        const noFacesMessage = document.getElementById('no-faces-message');
+        
+        // Bootstrap Toasts
+        const successToast = new bootstrap.Toast(document.getElementById('successToast'));
+        const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+        
+        // Event Listeners
+        startBtn.addEventListener('click', startStream);
+        stopBtn.addEventListener('click', stopStream);
+        
+        // Methods
+        async function startStream() {
+            try {
+                const role = document.getElementById('role')?.value || "0";
+
+                await axios.post(`${API_BASE_URL}/start_stream`, {
+                    role: role
+                });
+
+                isStreamActive = true;
+
+                videoFeed.src = `${VIDEO_FEED_URL}?t=${Date.now()}`;
+                videoFeed.classList.remove('d-none');
+                cameraPlaceholder.classList.add('d-none');
+                startBtn.classList.add('d-none');
+                stopBtn.classList.remove('d-none');
+
+                // Start polling for recognized faces
+                startFaceRecognitionPolling();
+            } catch (error) {
+                showError('Failed to start camera stream');
+                console.error(error);
+            }
+        }
+        
+        async function stopStream() {
+            try {
+                await axios.post(`${API_BASE_URL}/stop_stream`);
+                isStreamActive = false;
+                
+                // Update UI
+                videoFeed.classList.add('d-none');
+                cameraPlaceholder.classList.remove('d-none');
+                startBtn.classList.remove('d-none');
+                stopBtn.classList.add('d-none');
+                
+                // Stop polling
+                clearInterval(pollingInterval);
+                
+                // Clear recognized faces
+                recognizedFaces = [];
+                updateRecognizedFacesUI();
+            } catch (error) {
+                showError('Failed to stop camera stream');
+                console.error(error);
+            }
+        }
+        
+        function startFaceRecognitionPolling() {
+            const role = parseInt(document.getElementById('role')?.value) || 0;
+
+            // Poll recognized faces every 1 second
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await axios.get(`${API_BASE_URL}/get_recognized_faces`, {
+                        params: {role: role}
+                    });
+
+                    if (response.data.status === 'success') {
+                        recognizedFaces = response.data.faces;
+                        updateRecognizedFacesUI();
+                    }
+                } catch (error) {
+                    console.error('Failed to get recognized faces:', error);
+                }
+            }, 1000);
+        }
+        
+        function updateRecognizedFacesUI() {
+            // Clear previous content except no-faces-message
+            const noFacesMessage = document.getElementById('no-faces-message');
+            recognizedFacesContainer.innerHTML = '';
+            
+            // Show message if no faces
+            if (recognizedFaces.length === 0) {
+                recognizedFacesContainer.appendChild(noFacesMessage);
+                return;
+            }
+            
+            // Create element for each face
+            recognizedFaces.forEach(face => {
+                const faceElement = document.createElement('div');
+                faceElement.className = 'recognized-face mb-2';
+                
+                const infoDiv = document.createElement('div');
+                const nameElement = document.createElement('strong');
+                nameElement.className = 'username';
+                nameElement.textContent = face.name || 'Unknown';
+                
+                const categoryBadge = document.createElement('span');
+                categoryBadge.className = face.category === 'visitor' ? 
+                    'badge bg-success ms-2' : 'badge bg-warning text-dark ms-2';
+                categoryBadge.textContent = face.category
+                    ? face.category.charAt(0).toUpperCase() + face.category.slice(1)
+                    : 'Unknown';
+                
+                const confidenceElement = document.createElement('div');
+                confidenceElement.className = 'text-muted small';
+                confidenceElement.textContent = `Confidence: ${(face.similarity * 100).toFixed(1)}%`;
+                
+                const nameWrapper = document.createElement('div');
+                nameWrapper.appendChild(nameElement);
+                nameWrapper.appendChild(categoryBadge);
+                
+                infoDiv.appendChild(nameWrapper);
+                infoDiv.appendChild(confidenceElement);
+                
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons mt-2';
+                
+                // Get meeting and location id
+                const meetingID = document.getElementById('meeting_id')?.value;
+                const locationID = document.getElementById('location_id')?.value;
+                const venue = document.getElementById('venue')?.value;
+                const role = parseInt(document.getElementById('role')?.value) || 0;
+
+                const checkInBtn = document.createElement('button');
+                checkInBtn.className = 'btn btn-sm btn-success me-2';
+                checkInBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Check In';
+                checkInBtn.addEventListener('click', () => checkIn(face.user_id, meetingID, locationID, venue, role));
+                
+                const checkOutBtn = document.createElement('button');
+                checkOutBtn.className = 'btn btn-sm btn-warning';
+                checkOutBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Check Out';
+                checkOutBtn.addEventListener('click', () => checkOut(face.user_id, venue, role, locationID));
+                
+                actionButtons.appendChild(checkInBtn);
+                actionButtons.appendChild(checkOutBtn);
+                
+                faceElement.appendChild(infoDiv);
+                faceElement.appendChild(actionButtons);
+                
+                recognizedFacesContainer.appendChild(faceElement);
+            });
+        }
+        
+        async function checkIn(userId, meetingID, locationID, venue, role) {
+            if (!userId || !locationID) {
+                showError('User ID and Location ID are required');
+                return;
+            }
+            
+            // For contractors (role 1), meetingID is not required
+            if (role === 0 && !meetingID) {
+                showError('Meeting ID is required for visitors');
+                return;
+            }
+            
+            try {
+                const response = await axios.post(`${API_BASE_URL}/check_in`, { 
+                    user_id: userId,
+                    meeting_id: meetingID,
+                    location_id: locationID,
+                    venue: venue,
+                    role: role
+                });
+                if (response.data.status === 'success') {
+                    showSuccess(response.data.message);
+                }
+            } catch (error) {
+                if (error.response && error.response.data) {
+                    showError(error.response.data.message);
+                } else {
+                    showError('Failed to check in');
+                }
+                console.error(error);
+            }
+        }
+        
+        async function checkOut(userId, venue, role, locationID) {
+            if (!userId || !locationID) {
+                showError('User ID and location ID not found');
+                return;
+            }
+            
+            try {
+                const response = await axios.post(`${API_BASE_URL}/check_out`, { 
+                    user_id: userId,
+                    venue: venue,
+                    role: role,
+                    location_id: locationID 
+                });
+
+                if (response.data.status === 'success') {
+                    showSuccess(response.data.message);
+                }
+            } catch (error) {
+                if (error.response && error.response.data) {
+                    showError(error.response.data.message);
+                } else {
+                    showError('Failed to check out');
+                }
+                console.error(error);
+            }
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('successToastBody').textContent = message;
+            successToast.show();
+        }
+        
+        function showError(message) {
+            document.getElementById('errorToastBody').textContent = message;
+            errorToast.show();
+        }
+        
+        // Function to load face stats
+        function loadFaceStats() {
+            document.getElementById('statsSpinner').classList.remove('d-none');
+            document.getElementById('statsContent').classList.add('d-none');
+            
+            axios.get(`${API_BASE_URL}/face_stats`)
+                .then(response => {
+                    document.getElementById('visitorCount').textContent = response.data.visitor || 0;
+                    document.getElementById('contractorCount').textContent = response.data.contractor || 0;
+                    document.getElementById('totalCount').textContent = response.data.total || 0;
+                    
+                    document.getElementById('statsSpinner').classList.add('d-none');
+                    document.getElementById('statsContent').classList.remove('d-none');
+                })
+                .catch(error => {
+                    console.error('Failed to load face stats:', error);
+                    showError('Failed to load face database statistics');
+                    document.getElementById('statsSpinner').classList.add('d-none');
+                });
+        }
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+ /* Futuristic Theme CSS */
+ :root {
+    --primary-color: #0dccff;
+    --secondary-color: #7928ca;
+    --dark-bg: #0f1423;
+    --panel-bg: #1a1f35;
+    --light-text: #e0e6ff;
+    --highlight: #00ffaa;
+    --gradient: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+body {
+    background-color: var(--dark-bg);
+    color: var(--light-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+}
+
+h1 {
+    font-family: "Tourney", sans-serif;
+    font-optical-sizing: auto;
+    color: var(--light-text);
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.text-muted {
+    color: rgba(224, 230, 255, 0.7) !important;
+}
+
+/* Video Container Styling */
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.video-feed {
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+#camera-placeholder {
+    background: var(--panel-bg) !important;
+    border: 2px dashed rgba(13, 204, 255, 0.3);
+    height: 480px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+}
+
+/* Control Panel Styling */
+.control-panel {
+    margin-top: 20px;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    background-color: var(--panel-bg);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Button Styling */
+.btn-primary {
+    background: var(--gradient);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(13, 204, 255, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(13, 204, 255, 0.5);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff4d4d, #f9424b);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(249, 66, 75, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249, 66, 75, 0.5);
+}
+
+/* Card Styling */
+.card {
+    background-color: var(--panel-bg);
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    background: var(--gradient);
+    color: var(--light-text);
+    border-bottom: none;
+    padding: 15px 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header:before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: var(--gradient);
+    filter: blur(20px);
+    opacity: 0.5;
+    z-index: -1;
+}
+
+.card-body {
+    background-color: var(--panel-bg);
+    border-radius: 0 0 12px 12px;
+}
+
+/* Recognized Face Styling */
+.recognized-face {
+    padding: 15px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: rgba(30, 38, 65, 0.6);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.recognized-face:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-color);
+}
+
+.recognized-face:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.unknown-face:before {
+    background: #f9424b;
+    box-shadow: 0 0 15px #f9424b;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #0dffaa, #00cc88);
+    border: none;
+    box-shadow: 0 3px 10px rgba(13, 255, 170, 0.3);
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(13, 255, 170, 0.5);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffaa00, #ff8800);
+    border: none;
+    color: white;
+    box-shadow: 0 3px 10px rgba(255, 170, 0, 0.3);
+}
+
+.btn-warning:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 170, 0, 0.5);
+}
+
+/* Toast Notifications */
+.toast {
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.bg-success {
+    background: linear-gradient(135deg, #0dffaa, #00cc88) !important;
+}
+
+.bg-danger {
+    background: linear-gradient(135deg, #ff4d4d, #f9424b) !important;
+}
+
+.bg-info {
+    background: var(--gradient) !important;
+}
+
+.username{
+    color: rgba(224, 230, 255, 0.7) !important;
+}
+/* Animations */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(13, 204, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(13, 204, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(13, 204, 255, 0);
+    }
+}
+
+.btn-primary:focus {
+    animation: pulse 1.5s infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--panel-bg);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+.form-label {
+    color: var(--light-text);
+    font-weight: 500;
+}
+
+.form-select {
+    background-color: var(--panel-bg);
+    color: var(--light-text);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--highlight);
+    box-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+}
+
+h2 {
+    font-family: "Tourney", sans-serif;
+    font-optical-sizing: auto;
+    color: var(--light-text);
+    font-weight: 300;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+
+.progress-container {
+    width: 80%;
+    max-width: 600px;
+    background-color: var(--panel-bg);
+    margin: auto;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(13, 204, 255, 0.3);
+}
+
+.progress-bar {
+    height: 30px; 
+    width: 0%; 
+    background: var(--gradient);
+    text-align: center; 
+    color: var(--light-text); 
+    line-height: 30px;
+    font-weight: 500;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 15px rgba(13, 204, 255, 0.5) inset;
+}
+
+.status {
+    margin-top: 20px;
+    font-size: 18px;
+    color: rgba(224, 230, 255, 0.9);
+}
+
+#statusText {
+    margin-top: 10px;
+    font-size: 16px;
+    color: rgba(224, 230, 255, 0.7);
+}
+
+.home-button {
+    display: none;
+    margin-top: 25px;
+    padding: 10px 30px;
+    font-size: 16px;
+    background: var(--gradient);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(13, 204, 255, 0.3);
+}
+
+.home-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(13, 204, 255, 0.5);
+}
+
+/* Animation for completed progress */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(13, 204, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(13, 204, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(13, 204, 255, 0);
+    }
+}
+
+.progress-done {
+    animation: pulse 1.5s infinite;
+}
+
+/* Add a subtle glow effect to the loading text */
+@keyframes textGlow {
+    0% { text-shadow: 0 0 5px rgba(13, 204, 255, 0.3); }
+    50% { text-shadow: 0 0 15px rgba(13, 204, 255, 0.7); }
+    100% { text-shadow: 0 0 5px rgba(13, 204, 255, 0.3); }
+}
+
+h2 {
+    animation: textGlow 2s infinite;
+}
+
+footer {
+    position: absolute;
+    bottom: 15px;
+    font-size: 0.85rem;
+    color: #ffffff; /* White text for better visibility */
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    padding: 5px 15px; /* Adds padding for better text readability */
+    border-radius: 5px; /* Optional: rounded corners for a modern look */
+  }
