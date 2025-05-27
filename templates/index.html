@@ -194,6 +194,15 @@
         stopBtn.addEventListener('click', stopStream);
         
         // Methods
+        function speak(text){
+            if('speechSynthesis' in window){
+                const utterance = new SpeechSynthesisUtterance(text);
+                window.speechSynthesis.speak(utterance)
+            } else {
+                console.warn("Speech synthesis not supported")
+            }
+        }
+
         async function startStream() {
             try {
                 const role = document.getElementById('role')?.value || "0";
@@ -228,13 +237,10 @@
                 cameraPlaceholder.classList.remove('d-none');
                 startBtn.classList.remove('d-none');
                 stopBtn.classList.add('d-none');
-                
-                // Stop polling
-                clearInterval(pollingInterval);
-                
-                // Clear recognized faces
+
+                if (pollingInterval) clearInterval(pollingInterval);
                 recognizedFaces = [];
-                updateRecognizedFacesUI();
+                updateRecognizedFacesUI([]);
             } catch (error) {
                 showError('Failed to stop camera stream');
                 console.error(error);
@@ -281,6 +287,7 @@
                 const nameElement = document.createElement('strong');
                 nameElement.className = 'username';
                 nameElement.textContent = face.name || 'Unknown';
+
                 
                 const categoryBadge = document.createElement('span');
                 categoryBadge.className = face.category === 'visitor' ? 
@@ -392,11 +399,13 @@
         function showSuccess(message) {
             document.getElementById('successToastBody').textContent = message;
             successToast.show();
+            speak(message)
         }
         
         function showError(message) {
             document.getElementById('errorToastBody').textContent = message;
             errorToast.show();
+            speak(message);
         }
         
         // Function to load face stats
