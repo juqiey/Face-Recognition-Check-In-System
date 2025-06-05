@@ -17,7 +17,7 @@
     <div id="app" class="container mt-4">
         <div class="row mb-4">
             <div class="col-12">
-                <h1 class="text-center">Face Recognition Check-in Prototype</h1>
+                <h1 class="text-center">Cek-Muka: Face Recognition Check-in Prototype</h1>
                 <p class="text-center text-muted">Imbas muka untuk masuk </p>
                 <!-- Role indicator -->
                 <div class="text-center mb-3">
@@ -230,19 +230,22 @@
         async function stopStream() {
             try {
                 await axios.post(`${API_BASE_URL}/stop_stream`);
+
                 isStreamActive = false;
-                
-                // Update UI
                 videoFeed.classList.add('d-none');
                 cameraPlaceholder.classList.remove('d-none');
                 startBtn.classList.remove('d-none');
                 stopBtn.classList.add('d-none');
 
-                if (pollingInterval) clearInterval(pollingInterval);
+                // Stop face recognition polling (optional, if you use it)
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
                 recognizedFaces = [];
                 updateRecognizedFacesUI([]);
             } catch (error) {
-                showError('Failed to stop camera stream');
+                showError("Failed to stop the camera stream.");
                 console.error(error);
             }
         }
